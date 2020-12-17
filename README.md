@@ -8,6 +8,7 @@ Here we examine the effect of axial angle on effective size and refractive index
 - numpy
 - json
 - pandas
+- matplotlib
 - scikit-learn
 - scipy
 - holopy
