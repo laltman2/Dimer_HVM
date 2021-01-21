@@ -10,7 +10,6 @@ from pylorenzmie.theory import coordinates, LMHologram
 from pylorenzmie.analysis.Feature import Feature
 from holopy.scattering.theory import DDA
 from scipy.spatial.transform import Rotation as R
-from holopy.inference import prior, ExactModel
 
 #Instrument parameters:
 wv = 0.447
@@ -23,15 +22,7 @@ config = {'n_m': n_m, 'wavelength': wv, 'magnification': mag}
 def feature_extent(a_p, n_p, z_p, config, nfringes=20, maxrange=300):
     '''Radius of holographic feature in pixels'''
 
-    x = np.arange(0, maxrange)
-    y = np.arange(0, maxrange)
-    xv, yv = np.meshgrid(x, y)
-    xv = xv.flatten()
-    yv = yv.flatten()
-    zv = np.zeros_like(xv)
-    coordinates = np.stack((xv, yv, zv))
-
-    h = LMHologram(coordinates=coordinates)
+    h = LMHologram(coordinates=np.arange(maxrange))
     h.instrument.properties = config
     h.particle.a_p = a_p
     h.particle.n_p = n_p
@@ -180,28 +171,18 @@ def fit(data, a_p, n_p, z_p, plot=False, return_img=False):
     ins.magnification = mag
     ins.n_m = n_m
     
-    feature.mask.distribution = 'fast'
-    feature.mask.percentpix = .1
+    feature.optimizer.mask.settings['distribution'] = 'fast'
+    feature.optimizer.mask.settings['percentpix'] = .1
 
-    x = np.arange(0, px)
-    y = np.arange(0, px)
-    xv, yv = np.meshgrid(x, y)
-    xv = xv.flatten()
-    yv = yv.flatten()
-    zv = np.zeros_like(xv)
-    coordinates = np.stack((xv, yv, zv))
-
-    #feature.model.coordinates = coordinates((px, px), dtype=np.float32)
-    feature.model.coordinates = coordinates
-    feature.coordinates = coordinates
+    feature.model.coordinates = coordinates((px, px), dtype=np.float32)
     p = feature.model.particle
 
     p.r_p = [px//2, px//2, z_p/mag]
     p.a_p = a_p
     p.n_p = n_p
     feature.data = np.array(data)
-    #result = feature.optimize(method='lm', verbose=False)
-    result = feature.optimize()
+    result = feature.optimize(method='lm', verbose=False)
+    print(feature.model.hologram().shape)
     print(result)
     if plot:
         plt.imshow(np.hstack([data, feature.model.hologram().reshape(shape)]))
@@ -214,25 +195,3 @@ def fit(data, a_p, n_p, z_p, plot=False, return_img=False):
         return feature.model.hologram(), a_fit, n_fit, z_fit
     else:
         return a_fit, n_fit, z_fit
-
-
-
-
-def fit_multisphere(data, a_p, n_p, z_guess, theta_guess, phi_guess):
-    px = data.shape[0]
-    z_p = prior.Uniform(lower_bound=50, upper_bound=100, guess=z_guess)
-    theta = prior.Uniform(lower_bound=0, upper_bound=np.pi/2, guess = theta_guess)
-    phi = prior.Uniform(lower_bound=0, upper_bound=np.pi, guess=phi_guess)
-    center = (mag*px, mag*px, z_p)
-    delta = np.array([np.cos(phi)*np.cos(theta), np.sin(phi)*np.cos(theta), np.sin(theta)])
-    c1 =  + 1.001*a_p*delta
-    c2 =  - 1.001*a_p*delta
-    cluster = np.array([c1, c2])
-
-    s1 = Sphere(center = cluster[0], n = n_p, r = a_p)
-    s2 = Sphere(center = cluster[1], n = n_p, r = a_p)
-
-    dimer = Spheres([s1, s2])
-
-    model = ExactModel(scatterer=sphere_cluster, calc_func=calc_holo,
-                   noise_sd = 1, medium_index = n_m, illum_wavelen=wv, illum_polarization=(1,0))
