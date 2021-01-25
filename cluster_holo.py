@@ -3,6 +3,7 @@ from holopy.scattering import Scatterer, Sphere, Spheres, calc_holo
 from holopy.scattering.scatterer import Indicators
 import numpy as np
 import matplotlib
+import cv2
 from matplotlib import pyplot as plt
 import pandas as pd
 import json
@@ -11,6 +12,7 @@ from pylorenzmie.analysis.Feature import Feature
 from holopy.scattering.theory import DDA
 from scipy.spatial.transform import Rotation as R
 from holopy.inference import prior, ExactModel
+from holopy.core.process import normalize
 
 #Instrument parameters:
 wv = 0.447
@@ -218,8 +220,14 @@ def fit(data, a_p, n_p, z_p, plot=False, return_img=False):
 
 
 
-def fit_multisphere(data, a_p, n_p, z_guess, theta_guess, phi_guess):
-    px = data.shape[0]
+def fit_multisphere(data_path, a_p, n_p, z_guess, theta_guess, phi_guess):
+    
+    px = cv2.imread(data_path).shape[0]
+
+    data_holo = hp.load_image(data_path, spacing = mag, medium_index = n_m,
+                         illum_wavelen = wv, illum_polarization = (1,0))
+ 
+    data_holo = normalize(data_holo)
     z_p = prior.Uniform(lower_bound=50, upper_bound=100, guess=z_guess)
     theta = prior.Uniform(lower_bound=0, upper_bound=np.pi/2, guess = theta_guess)
     phi = prior.Uniform(lower_bound=0, upper_bound=np.pi, guess=phi_guess)
@@ -234,5 +242,8 @@ def fit_multisphere(data, a_p, n_p, z_guess, theta_guess, phi_guess):
 
     dimer = Spheres([s1, s2])
 
-    model = ExactModel(scatterer=sphere_cluster, calc_func=calc_holo,
-                   noise_sd = 1, medium_index = n_m, illum_wavelen=wv, illum_polarization=(1,0))
+    model = ExactModel(scatterer=dimer, calc_func=calc_holo,
+                   noise_sd = None, medium_index = n_m, illum_wavelen=wv, illum_polarization=(1,0))
+    fit_result = hp.fit(data_holo, model)
+
+    return fit_result
