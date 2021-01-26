@@ -174,7 +174,6 @@ def trisphere(a_p, n_p, z_p, alpha, theta, phi, check_geom=False):
 
 
 def fit(data, a_p, n_p, z_p, plot=False, return_img=False, percentpix=0.1):
-    # NOTE: because of a bug in pylorenzmie, only set plot=True if percentpix=1
     feature = Feature(model=LMHologram())
     px = int(np.sqrt(data.size))
     
@@ -207,8 +206,7 @@ def fit(data, a_p, n_p, z_p, plot=False, return_img=False, percentpix=0.1):
     result = feature.optimize()
     print(result)
     if plot:
-        shape = (px,px)
-        plt.imshow(np.hstack([data, feature.model.hologram().reshape(shape)]))
+        plt.imshow(np.hstack([data, feature.hologram()]))
         plt.show()
     a_fit = feature.model.particle.a_p
     n_fit = feature.model.particle.n_p
