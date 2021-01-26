@@ -225,7 +225,7 @@ def fit_multisphere(data_path, a_p, n_p, z_guess, theta_guess, phi_guess):
     px = cv2.imread(data_path).shape[0]
 
     data_holo = hp.load_image(data_path, spacing = mag, medium_index = n_m,
-                         illum_wavelen = wv, illum_polarization = (1,0))
+                              illum_wavelen = wv, illum_polarization = (1,0), channel=0)
  
     data_holo = normalize(data_holo)
     z_p = prior.Uniform(lower_bound=50, upper_bound=100, guess=z_guess, name='z_p')
