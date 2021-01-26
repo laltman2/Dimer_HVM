@@ -20,7 +20,7 @@ imagepath = 'data/exp_crops/crop02.png'
 
 zguess = 70
 thetaguess = np.pi/2*0.8
-phiguess = 0
+phiguess = 0.1
 
 #check bisphere for guess first
 holo, cluster = bisphere(a_p = a_p, n_p = n_p, z_p = zguess, theta = thetaguess, phi = phiguess)
@@ -29,9 +29,11 @@ holo, cluster = bisphere(a_p = a_p, n_p = n_p, z_p = zguess, theta = thetaguess,
 #plt.imshow(holo)
 #plt.show()
 
-img = cv2.imread(imagepath)
-img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY).astype(np.float)
-img /= np.mean(img)
-fit(img, a_p=a_p*2, n_p=n_p, z_p=zguess, plot=True, percentpix=1)
+#img = cv2.imread(imagepath)
+#img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY).astype(np.float)
+#img /= np.mean(img)
+#fit(img, a_p=a_p*2, n_p=n_p, z_p=zguess, plot=True, percentpix=0.5)
 
 result = fit_multisphere(imagepath, a_p = a_p, n_p = n_p, theta_guess = thetaguess, z_guess = zguess, phi_guess = phiguess)
+best_fit_values = result.parameters
+print(best_fit_values)  

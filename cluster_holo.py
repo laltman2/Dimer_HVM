@@ -228,9 +228,12 @@ def fit_multisphere(data_path, a_p, n_p, z_guess, theta_guess, phi_guess):
                          illum_wavelen = wv, illum_polarization = (1,0))
  
     data_holo = normalize(data_holo)
-    z_p = prior.Uniform(lower_bound=50, upper_bound=100, guess=z_guess)
-    theta = prior.Uniform(lower_bound=0, upper_bound=np.pi/2, guess = theta_guess)
-    phi = prior.Uniform(lower_bound=0, upper_bound=np.pi, guess=phi_guess)
+    z_p = prior.Uniform(lower_bound=50, upper_bound=100, guess=z_guess, name='z_p')
+    theta = prior.Uniform(lower_bound=0, upper_bound=np.pi/2, guess = theta_guess, name='theta')
+    phi = prior.Uniform(lower_bound=0, upper_bound=np.pi, guess=phi_guess, name='phi')
+    
+    '''
+    #idk why this doesn't work, maybe the fitter has some issue with numpy
     center = (mag*px, mag*px, z_p)
     delta = np.array([np.cos(phi)*np.cos(theta), np.sin(phi)*np.cos(theta), np.sin(theta)])
     c1 =  + 1.001*a_p*delta
@@ -239,6 +242,18 @@ def fit_multisphere(data_path, a_p, n_p, z_guess, theta_guess, phi_guess):
 
     s1 = Sphere(center = cluster[0], n = n_p, r = a_p)
     s2 = Sphere(center = cluster[1], n = n_p, r = a_p)
+    '''
+    
+    x1 = mag*px/2 + a_p*np.cos(phi)*np.cos(theta)*1.001
+    x2 = mag*px/2 - a_p*np.cos(phi)*np.cos(theta)*1.001
+    y1 = mag*px/2 + a_p*np.cos(theta)*np.sin(phi)*1.001
+    y2 = mag*px/2 + a_p*np.cos(theta)*np.sin(phi)*1.001
+    z1 = z_p + a_p*np.sin(theta)*1.001
+    z2 = z_p - a_p*np.sin(theta)*1.001
+    
+    s1 = Sphere(center = [x1, y1, z1], n = n_p, r = a_p)
+    s2 = Sphere(center = [x2, y2, z2], n = n_p, r = a_p)
+    
 
     dimer = Spheres([s1, s2])
 
