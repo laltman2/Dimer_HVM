@@ -28,7 +28,7 @@ savedir = {'a_p': a_p, 'n_p': n_p, 'imagename': [], 'sphere_a_fit': [], 'sphere_
            'spherefit_time': [],
            'multisphere_theta_fit': [], 'multisphere_phi_fit':[], 'multisphere_z_fit':[],
            #'multisphere_redchi': [],
-           'multishperefit_time':[]}
+           'multispherefit_time':[]}
 for fname in image_fnames:
     ##check bisphere for guess first
     #holo, cluster = bisphere(a_p = a_p, n_p = n_p, z_p = zguess, theta = thetaguess, phi = phiguess)
@@ -57,7 +57,9 @@ for fname in image_fnames:
     delta = time() - start
     best_fit_values = result.parameters
 
-    #help(result)
+
+    saveholo = np.clip(np.array(result.hologram)*100., 1, 255)
+    cv2.imwrite(imagebase + 'fits/'+ fname, saveholo)
     print(best_fit_values)
     
     savedir['multisphere_theta_fit'].append(best_fit_values['theta'])
