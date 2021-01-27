@@ -44,7 +44,7 @@ for fname in image_fnames:
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY).astype(np.float)
     img /= np.mean(img)
     start = time()
-    a,z,n = fit(img, a_p=a_p*2, n_p=n_p, z_p=zguess, percentpix=1)
+    a,n,z = fit(img, a_p=a_p*2, n_p=n_p, z_p=zguess, percentpix=1)
     delta = time() - start
 
     savedir['sphere_a_fit'].append(a)

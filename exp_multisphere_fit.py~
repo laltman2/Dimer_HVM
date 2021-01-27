@@ -1,0 +1,31 @@
+import cv2
+import numpy as np
+from cluster_holo import fit_multisphere
+import holopy as hp
+
+
+#Instrument parameters:                                                                                
+wv = 0.447
+mag = 0.120
+n_m = 1.34 #assume water                                                                               
+config = {'n_m': n_m, 'wavelength': wv, 'magnification': mag} 
+
+n_p = 1.435
+a_p = 0.527
+
+
+imagepath = 'data/exp_crops/crop02.png'
+
+data_holo = hp.load_image(imagepath, spacing = mag, medium_index = n_m,
+                         illum_wavelen = wv, illum_polarization = (1,0))
+
+# process the image                                                                                    
+#data_holo = subimage(data_holo, [250,250], 200)
+data_holo = normalize(data_holo)
+
+
+zguess = 70
+thetaguess = np.pi/2*0.8
+phiguess = 0
+
+result = fit_multisphere(img1, a_p = a_p, n_p = n_p, theta_guess = thetaguess, z_guess = zguess, phi_guess = phiguess)
