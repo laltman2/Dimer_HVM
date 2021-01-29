@@ -220,7 +220,7 @@ def fit(data, a_p, n_p, z_p, plot=False, return_img=False, percentpix=0.1):
 
 
 
-def fit_multisphere(data_path, a_p, n_p, z_guess, theta_guess, phi_guess):
+def fit_multisphere(data_path, a_p, n_p, z_guess, theta_guess, phi_guess, fit_a=False):
     
     px = cv2.imread(data_path).shape[0]
 
@@ -228,7 +228,7 @@ def fit_multisphere(data_path, a_p, n_p, z_guess, theta_guess, phi_guess):
                               illum_wavelen = wv, illum_polarization = (1,0), channel=0)
  
     data_holo = normalize(data_holo)
-    z_p = prior.Uniform(lower_bound=50, upper_bound=100, guess=z_guess, name='z_p')
+    z_p = prior.Uniform(lower_bound=45, upper_bound=100, guess=z_guess, name='z_p')
     theta = prior.Uniform(lower_bound=0, upper_bound=np.pi/2, guess = theta_guess, name='theta')
     phi = prior.Uniform(lower_bound=0, upper_bound=np.pi, guess=phi_guess, name='phi')
     
@@ -243,22 +243,31 @@ def fit_multisphere(data_path, a_p, n_p, z_guess, theta_guess, phi_guess):
     s1 = Sphere(center = cluster[0], n = n_p, r = a_p)
     s2 = Sphere(center = cluster[1], n = n_p, r = a_p)
     '''
+
+    if fit_a:
+        a_1 = prior.Uniform(lower_bound=a_p*0.8, upper_bound = a_p*1.2, guess=a_p, name='a_1')
+        a_2 = prior.Uniform(lower_bound=a_p*0.8, upper_bound = a_p*1.2, guess=a_p, name='a_2')
+    else:
+        a_1 = a_p
+        a_2 = a_p
     
-    x1 = mag*px/2 + a_p*np.cos(phi)*np.cos(theta)*1.001
-    x2 = mag*px/2 - a_p*np.cos(phi)*np.cos(theta)*1.001
-    y1 = mag*px/2 + a_p*np.cos(theta)*np.sin(phi)*1.001
-    y2 = mag*px/2 + a_p*np.cos(theta)*np.sin(phi)*1.001
-    z1 = z_p + a_p*np.sin(theta)*1.001
-    z2 = z_p - a_p*np.sin(theta)*1.001
+    x1 = mag*px/2 + a_1*np.cos(phi)*np.cos(theta)*1.001
+    x2 = mag*px/2 - a_2*np.cos(phi)*np.cos(theta)*1.001
+    y1 = mag*px/2 + a_1*np.cos(theta)*np.sin(phi)*1.001
+    y2 = mag*px/2 + a_2*np.cos(theta)*np.sin(phi)*1.001
+    z1 = z_p + a_1*np.sin(theta)*1.001
+    z2 = z_p - a_2*np.sin(theta)*1.001
     
-    s1 = Sphere(center = [x1, y1, z1], n = n_p, r = a_p)
-    s2 = Sphere(center = [x2, y2, z2], n = n_p, r = a_p)
+    s1 = Sphere(center = [x1, y1, z1], n = n_p, r = a_1)
+    s2 = Sphere(center = [x2, y2, z2], n = n_p, r = a_2)
     
 
-    dimer = Spheres([s1, s2])
+    dimer = Spheres([s1, s2], warn=False)
 
     model = ExactModel(scatterer=dimer, calc_func=calc_holo,
                    noise_sd = None, medium_index = n_m, illum_wavelen=wv, illum_polarization=(1,0))
     fit_result = hp.fit(data_holo, model)
 
     return fit_result
+
+
