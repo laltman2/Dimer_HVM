@@ -24,9 +24,9 @@ image_fnames = ['crop01_square.png', 'crop02.png', 'crop03.png', 'crop04.png']
 imagebase = 'data/exp_crops/'
 
 #these initial guesses seem to not error out so i'm keeping them for now
-zguess = 70
-thetaguess = np.pi/2*0.8
-phiguess = 0.1
+#zguess = 70
+#thetaguess = np.pi/2*0.8
+phiguesses = [0.3, np.pi/2, 0.5, 0.1]
 
 savedir = {'a_p': [], 'n_p': [], 'imagename': [], 'sphere_a_fit': [], 'sphere_n_fit':[], 'sphere_z_fit': [],
            'spherefit_time': [],
@@ -41,12 +41,12 @@ for i in range(len(bd['imagename'])):
     fname = bd['imagename'][i]
     thetaguess = bd['theta_fit'][i]
     zguess = bd['z_fit'][i]*mag
+    phiguess = phiguesses[i]
     ##check bisphere for guess first
     #holo, cluster = bisphere(a_p = a_p, n_p = n_p, z_p = zguess, theta = thetaguess, phi = phiguess)
-    #print(cluster)
     #plt.imshow(holo)
     #plt.show()
-    print(fname)
+    #print(fname)
     savedir['imagename'].append(fname)
     savedir['a_p'].append(a_p)
     savedir['n_p'].append(n_p)
@@ -88,7 +88,7 @@ for i in range(len(bd['imagename'])):
     savedir['phi_fit'].append(phi_unc.guess)
     savedir['phi_pos'].append(phi_unc.plus)
     savedir['phi_neg'].append(phi_unc.minus)
-    print(type(savedir['multisphere_covar'][0]))
 
-with open('data/exp_multisphere_fits03.json', 'w') as f:
+
+with open('data/exp_multisphere_fits04.json', 'w') as f:
     json.dump(savedir, f)
