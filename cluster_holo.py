@@ -68,7 +68,7 @@ def sphere(a_p, n_p, z_p):
     return holo
     
     
-def bisphere(a_p, n_p, z_p, theta, phi):
+def bisphere(a_p, n_p, z_p, theta, phi, noise=True):
     px = int(feature_extent(a_p, n_p, z_p, config))*2
     detector = hp.detector_grid(2*px, mag)
     center = (mag*px, mag*px, z_p)
@@ -90,7 +90,8 @@ def bisphere(a_p, n_p, z_p, theta, phi):
     holo = np.squeeze(calc_holo(detector, dimer, medium_index=n_m, illum_wavelen=wv, illum_polarization=(1, 0))).data
     
     #noise
-    holo += np.random.normal(0., 0.05, holo.shape)
+    if noise:
+        holo += np.random.normal(0., 0.05, holo.shape)
     
     return holo, cluster_return
 
@@ -182,8 +183,8 @@ def fit(data, a_p, n_p, z_p, plot=False, return_img=False, percentpix=0.1):
     ins.magnification = mag
     ins.n_m = n_m
     
-    feature.mask.distribution = 'fast'
-    feature.mask.percentpix = percentpix
+    #feature.mask.distribution = 'fast'
+    #feature.mask.percentpix = percentpix
 
     x = np.arange(0, px)
     y = np.arange(0, px)
@@ -196,12 +197,12 @@ def fit(data, a_p, n_p, z_p, plot=False, return_img=False, percentpix=0.1):
     #feature.model.coordinates = coordinates((px, px), dtype=np.float32)
     feature.model.coordinates = coordinates
     feature.coordinates = coordinates
-    p = feature.model.particle
+    p = feature.particle
 
     p.r_p = [px//2, px//2, z_p/mag]
     p.a_p = a_p
     p.n_p = n_p
-    feature.data = np.array(data)
+    feature.data = np.array(data) / np.mean(data)
     #result = feature.optimize(method='lm', verbose=False)
     result = feature.optimize()
     print(result)
@@ -213,7 +214,7 @@ def fit(data, a_p, n_p, z_p, plot=False, return_img=False, percentpix=0.1):
     z_fit = feature.model.particle.z_p
 
     if return_img:
-        return feature.model.hologram(), a_fit, n_fit, z_fit
+        return feature.hologram(), a_fit, n_fit, z_fit
     else:
         return a_fit, n_fit, z_fit
 
